@@ -3,55 +3,93 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StructuredText.Engines;
 
 namespace StructuredText
 {
     internal class Main
     {
         static string path = "..\\..\\..\\files";
-        public List<string> files = new List<string>();
-        ParsingEngine engine;
-        List<string[]> csvContent = new List<string[]>();
-        List<string[]> pipeContent = new List<string[]>();
-        Dictionary<string, List<string[]>> output = new Dictionary<string, List<string[]>>();
+        List<string> files = new List<string>();
+        public List<Files> myFiles = new List<Files>();
+        BaseEngine engine;
 
-        public void Run()
+        public void Start()
         {
             //GetFiles method from https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.getfiles?view=net-7.0
             files = Directory.GetFiles(path).ToList();
-            engine = new ParsingEngine(files);
-            csvContent = engine.csvLines; 
-            pipeContent = engine.pipeLines;
-            output.Add("SampleCSV", csvContent);
-            output.Add("SamplePipe", pipeContent);
-            writeFileContent(output);
+            createFiles(files);
+            Run(myFiles);
         }
 
-        //writes files with given content
-        void writeFileContent(Dictionary<string, List<string[]>> content)
+        //creates Files for each file in given list
+        void createFiles(List<string> files)
         {
-            foreach (KeyValuePair<string, List<string[]>> pair in content)
+            foreach (string file in files)
             {
-                StreamWriter writer = new StreamWriter(path + "\\" + pair.Key + "_out.txt");
-                for (int x = 0; x < pair.Value.Count; x++)
+                string path = file;
+                string filename = file.Substring(file.LastIndexOf('\\') + 1);
+                filename = filename.Substring(0, filename.LastIndexOf("."));
+                string extension;
+                if (path.Contains(Constants.FileExtensions.Pipe))
                 {
-                    writer.Write($"Line#{x + 1} :");
-                    for (int y = 0; y < pair.Value[x].Length; y++)
-                    {
-                        if (y != pair.Value[x].Length - 1)
-                        {
-                            writer.Write($"Field#{y + 1}={pair.Value[x][y]} ==> ");
-                        }
-                        else
-                        {
-                            writer.Write($"Field#{y + 1}={pair.Value[x][y]}");
-                        }
-                    }
-                    writer.Write('\n');
+                    extension = Constants.FileExtensions.Pipe;
                 }
-                writer.Close();
+                else if (path.Contains(Constants.FileExtensions.CSV))
+                {
+                    extension = Constants.FileExtensions.CSV;
+                }
+                else if (path.Contains(Constants.FileExtensions.XML))
+                {
+                    extension = Constants.FileExtensions.XML;
+                } else if (path.Contains(Constants.FileExtensions.JSON))
+                {
+                    extension = Constants.FileExtensions.JSON;
+                } else
+                {
+                    throw new Exception("Invalid file type");
+                }
+                string delimiter;
+                if (extension.Equals(Constants.FileExtensions.Pipe))
+                {
+                    delimiter = Constants.Delimiters.PipeDelimiter;
+                } else if (extension.Equals(Constants.FileExtensions.CSV))
+                {
+                    delimiter = Constants.Delimiters.CSVDelimiter;
+                } else
+                {
+                    delimiter = null;
+                }
+                Files tempFile = new Files(path, filename, extension, delimiter);
+                myFiles.Add(tempFile);
             }
-            
+        }
+
+        //parses each file based on file type
+        void Run(List<Files> files)
+        {
+            foreach(Files file in files)
+            {
+                switch (file.Extension)
+                {
+                    case ".csv":
+                        engine = new DelimiterEngine();
+                        engine.Engine(file, path);
+                        break;
+                    case ".txt":
+                        engine = new DelimiterEngine();
+                        engine.Engine(file, path);
+                        break;
+                    case ".xml":
+                        engine = new XMLEngine();
+                        engine.Engine(file, path);
+                        break;
+                    case ".json":
+                        engine = new JSONEngine();
+                        engine.Engine(file, path);
+                        break;
+                }
+            }
         }
     }
 }

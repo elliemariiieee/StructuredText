@@ -1,0 +1,1 @@
+Line#1 : Name: John Doe Enrolled? True Years Enrolled: 2 Address: 916 S. Wabash, Chicago, IL 60000 Phone Numbers: Type: Mobile, Number: 999-123-1234, Can Contact? True

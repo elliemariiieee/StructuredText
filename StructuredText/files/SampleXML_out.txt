@@ -1,0 +1,2 @@
+Line#1 : Item info => Apple $4.00/bag
+Line#2 : Item info => Orange $.99/lbs

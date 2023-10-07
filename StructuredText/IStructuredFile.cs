@@ -8,8 +8,9 @@ namespace StructuredText
 {
     internal interface IStructuredFile
     {
-        void getCSVContent(string file);
-
-        void getPipeContent(string file);
+        public string FileName { get; set; }
+        public string Path { get; set; }
+        public string Extension { get; set; }
+        public string? Delimiter { get; set; }
     }
 }
